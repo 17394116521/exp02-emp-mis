@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 只对 Mapper 包输出 DEBUG：打印 SQL、参数与结果行数，便于排查映射问题 -->
+    <logger name="com.lab.emp.mapper" level="debug"/>
+
+    <root level="info">
+        <appender-ref ref="console"/>
+    </root>
+</configuration>
