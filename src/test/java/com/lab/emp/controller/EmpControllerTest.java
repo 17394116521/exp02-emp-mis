@@ -73,6 +73,35 @@ public class EmpControllerTest {
                 .andExpect(content().string(containsString("\"code\":400")));
     }
 
+    /** 多条件：不存在的姓名应返回 total=0，证明模糊条件已进入 SQL */
+    @Test
+    public void multiConditionFiltersWorks() throws Exception {
+        mockMvc.perform(get("/emps")
+                        .param("page", "1")
+                        .param("size", "5")
+                        .param("name", "该员工不存在XYZ")
+                        .param("gender", "男")
+                        .param("dept", "技术部"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("\"code\":200")))
+                .andExpect(content().string(containsString("\"total\":0")));
+    }
+
+    /** 薪资区间：只传下限也应正常返回分页结构 */
+    @Test
+    public void salaryRangeConditionWorks() throws Exception {
+        mockMvc.perform(get("/emps")
+                        .param("page", "1")
+                        .param("size", "5")
+                        .param("minSalary", "8000")
+                        .param("maxSalary", "20000"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("\"code\":200")))
+                .andExpect(content().string(containsString("\"records\"")));
+    }
+
     /** 批量删除空数组应返回 400，不应该走 SQL */
     @Test
     public void emptyBatchDeleteRejected() throws Exception {

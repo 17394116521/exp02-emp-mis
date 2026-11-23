@@ -16,6 +16,7 @@ exp02-emp-mis
 │   ├── common                # Result 统一返回封装
 │   ├── config                # SpringConfig、SpringMvcConfig、MyBatisPlusConfig、WebInitConfig
 │   ├── controller            # EmpController（RESTful 接口）
+│   ├── dto                   # EmpQueryDTO（列表多条件查询参数）
 │   ├── entity                # Emp、Department
 │   ├── mapper                # EmpMapper、DeptMapper（继承 BaseMapper）
 │   └── service               # EmpService、DeptService 及实现
@@ -35,6 +36,7 @@ exp02-emp-mis
 3. commit3（11-16）：完成 Web 层初始化与三层骨架——SpringMVC 子容器、跨域、UTF-8 过滤器，Emp/Department 实体、Mapper、Service 与统一返回，并通过整合验证用例
 4. commit4（11-22）：数据库精细化设计——部门表与员工表脚本、emp_name/dept_id/status 索引、字段约束与自拟测试数据
 5. commit5（11-22）：RESTful 员工接口与接口测试——/emps 增删改查、分页参数校验，补充 README 与提交记录
+6. commit6（11-23）：多条件分页查询——新增 EmpQueryDTO，Service 用 Lambda 条件构造器按需拼接姓名模糊、性别/部门精确与薪资区间条件，Controller 一键接入并补充接口测试
 
 ## 🤖 AI 辅助使用记录
 AI 用于依赖清单生成、配置类初稿、接口模板与报错分析；人工校验重点：
@@ -43,5 +45,5 @@ AI 用于依赖清单生成、配置类初稿、接口模板与报错分析；�
 - 实体关联属性 `department` 需加 `@TableField(exist = false)`，否则拼入 SQL 报 Unknown column
 
 ## ✅ 当前进度
-已完成实验二任务 2（项目初始化与依赖管理）、任务 3（SSM 全注解整合）、任务 4（数据库设计与分层代码）。
-待后续提交：任务 5（多条件分页查询 DTO）、任务 6（参数校验/全局异常/登录拦截/AOP 日志/事务验证）、任务 7（ApiFox 测试与项目复盘）。
+已完成实验二任务 2–5：项目初始化与依赖管理、SSM 全注解整合、数据库设计与分层代码、RESTful 接口及多条件分页查询。
+待后续提交：任务 6（参数校验/全局异常/登录拦截/AOP 日志/事务验证）、任务 7（ApiFox 测试与项目复盘）。

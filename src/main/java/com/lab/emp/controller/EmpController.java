@@ -1,8 +1,8 @@
 package com.lab.emp.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lab.emp.common.Result;
+import com.lab.emp.dto.EmpQueryDTO;
 import com.lab.emp.entity.Emp;
 import com.lab.emp.service.EmpService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,13 +67,14 @@ public class EmpController {
         return Result.ok(empService.getById(id));
     }
 
-    /** 分页查询，page 从 1 开始 */
+    /** 分页 + 多条件查询：姓名模糊、性别/部门精确、薪资区间可选 */
     @GetMapping
     public Result<IPage<Emp>> page(@RequestParam(defaultValue = "1") Long page,
-                                   @RequestParam(defaultValue = "5") Long size) {
+                                   @RequestParam(defaultValue = "5") Long size,
+                                   EmpQueryDTO query) {
         if (page < 1 || size < 1 || size > 100) {
             return Result.fail(400, "分页参数不合法：page 最小为 1，size 取值 1~100");
         }
-        return Result.ok(empService.page(new Page<>(page, size)));
+        return Result.ok(empService.pageQuery(page, size, query));
     }
 }
