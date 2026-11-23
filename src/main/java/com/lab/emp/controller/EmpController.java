@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -30,16 +31,16 @@ public class EmpController {
     @Autowired
     private EmpService empService;
 
-    /** 新增员工 */
+    /** 新增员工，实体上的 JSR-303 约束生效 */
     @PostMapping
-    public Result<Void> add(@RequestBody Emp emp) {
+    public Result<Void> add(@RequestBody @Valid Emp emp) {
         empService.save(emp);
         return Result.ok();
     }
 
     /** 修改员工，按 empId 更新 */
     @PutMapping
-    public Result<Void> update(@RequestBody Emp emp) {
+    public Result<Void> update(@RequestBody @Valid Emp emp) {
         empService.updateById(emp);
         return Result.ok();
     }

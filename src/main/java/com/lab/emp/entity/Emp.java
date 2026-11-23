@@ -4,6 +4,15 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -21,14 +30,33 @@ public class Emp implements Serializable {
 
     @TableId(value = "emp_id", type = IdType.AUTO)
     private Integer empId;
+
+    @NotBlank(message = "员工姓名不能为空")
+    @Size(max = 50, message = "员工姓名长度不能超过 50 个字符")
     @TableField("emp_name")
     private String empName;
+
+    @Pattern(regexp = "男|女", message = "性别只能填写男或女")
     private String gender;
+
+    @Size(max = 50, message = "部门名称长度不能超过 50 个字符")
     private String dept;
+
+    @Size(max = 50, message = "岗位名称长度不能超过 50 个字符")
     private String post;
+
+    @NotNull(message = "薪资不能为空")
+    @DecimalMin(value = "0", message = "薪资不能为负数")
+    @Digits(integer = 8, fraction = 2, message = "薪资最多 8 位整数、2 位小数")
     private BigDecimal salary;
+
     private Date hireDate;
+
+    @Min(value = 0, message = "在岗状态只能为 0 或 1")
+    @Max(value = 1, message = "在岗状态只能为 0 或 1")
     private Integer status;
+
+    @Min(value = 1, message = "部门编号必须为正整数")
     private Integer deptId;
 
     // 多对一关联对象，非数据库字段

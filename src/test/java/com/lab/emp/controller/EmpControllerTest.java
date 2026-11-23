@@ -18,6 +18,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -100,6 +101,39 @@ public class EmpControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("\"code\":200")))
                 .andExpect(content().string(containsString("\"records\"")));
+    }
+
+    /** 参数校验：姓名为空白应被拦截并返回 400 */
+    @Test
+    public void blankNameRejected() throws Exception {
+        mockMvc.perform(post("/emps").contentType("application/json")
+                        .content("{\"empName\":\"   \",\"salary\":10000}"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("\"code\":400")))
+                .andExpect(content().string(containsString("员工姓名不能为空")));
+    }
+
+    /** 参数校验：负薪资应被拦截并返回 400 */
+    @Test
+    public void negativeSalaryRejected() throws Exception {
+        mockMvc.perform(post("/emps").contentType("application/json")
+                        .content("{\"empName\":\"测试员工\",\"salary\":-1}"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("\"code\":400")))
+                .andExpect(content().string(containsString("薪资不能为负数")));
+    }
+
+    /** 全局异常：非法 JSON 应返回统一的 400 结构，而不是容器错误页 */
+    @Test
+    public void malformedJsonRejected() throws Exception {
+        mockMvc.perform(post("/emps").contentType("application/json")
+                        .content("{empName:}"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("\"code\":400")))
+                .andExpect(content().string(containsString("请求体格式错误")));
     }
 
     /** 批量删除空数组应返回 400，不应该走 SQL */

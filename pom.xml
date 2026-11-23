@@ -105,6 +105,12 @@
             <artifactId>hibernate-validator</artifactId>
             <version>6.2.5.Final</version>
         </dependency>
+        <!-- 校验消息插值依赖，缺少会报 Unable to initialize ExpressionFactory -->
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.el</artifactId>
+            <version>3.0.1-b12</version>
+        </dependency>
 
         <!-- ============ 日志 ============ -->
         <dependency>
