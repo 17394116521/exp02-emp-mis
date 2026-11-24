@@ -42,6 +42,15 @@ exp02-emp-mis
 7. commit7（11-23）：参数校验与全局异常——Emp 增加 JSR-303 约束（姓名、性别、薪资、状态等），新增/修改接口启用 @Valid，新增 GlobalExceptionHandler 统一处理校验失败、JSON 解析错误与兜底异常
 8. commit8（11-24）：登录拦截与认证接口——新增 LoginInterceptor 以 Session 中的员工编号校验受保护请求（返回真实 401 + 统一 JSON），新增 /auth/login、/auth/logout、/auth/me，登录账号取自 emp 表在岗员工，并补充认证与拦截测试
 9. commit9（11-24）：AOP 请求日志切面——@Around 拦截 Controller 层，为每次请求生成 traceId 写入 MDC，记录方法/URI/脱敏参数/耗时/响应状态，超过 500ms 记 WARN，异常记 ERROR 后原样抛出
+10. commit10（11-24）：声明式事务验证——以部门批量迁移为载体，正常流程任一条员工缺失即抛业务异常并整体回滚；同时给出异常被吞、this 自调用、private 方法加注解三种失效场景，用测试对比观察数据是否残留
+
+## 🧪 事务验证记录（任务 6.5）
+| 场景 | 现象 | 原因 |
+|---|---|---|
+| `migrateDept` 加 `@Transactional(rollbackFor = Exception.class)` | 中途抛出 BusinessException 后，先更新的记录全部回滚 | 代理开启事务，异常触发回滚 |
+| 异常被 try-catch 吞掉 | 方法返回 -1，已更新记录被保留 | 事务管理器感知不到异常，正常提交 |
+| this 自调用同类事务方法 | 抛出异常但先更新的记录保留 | 自调用不走代理，注解不生效 |
+| `@Transactional` 标在 private 方法 | 同上，数据不回滚 | 代理无法织入 private 方法，注解被忽略 |
 
 ## 🤖 AI 辅助使用记录
 AI 用于依赖清单生成、配置类初稿、接口模板与报错分析；人工校验重点：
@@ -49,7 +58,8 @@ AI 用于依赖清单生成、配置类初稿、接口模板与报错分析；�
 - 分页拦截器仅声明 Bean 不生效，必须在 SqlSessionFactory 中 `setPlugins`
 - 实体关联属性 `department` 需加 `@TableField(exist = false)`，否则拼入 SQL 报 Unknown column
 - 仅引入 `spring-aspects` 不会让 `@Aspect` 生效，根容器必须显式 `@EnableAspectJAutoProxy` 并扫描 aspect 包
+- 自调用、private 方法、异常被吞都会让 `@Transactional` 失效，事务验证必须通过代理方法入口调用
 
 ## ✅ 当前进度
-已完成实验二任务 2–5，以及任务 6 的参数校验、全局异常、登录拦截与 AOP 请求日志部分：项目初始化与依赖管理、SSM 全注解整合、数据库设计与分层代码、RESTful 接口与多条件分页、JSR-303 校验与统一异常返回、Session 登录认证与拦截器、Controller 层请求日志切面。
-待后续提交：任务 6 剩余（声明式事务验证）、任务 7（ApiFox 测试与项目复盘）。
+已完成实验二任务 2–6 全部内容：项目初始化与依赖管理、SSM 全注解整合、数据库设计与分层代码、RESTful 接口与多条件分页、JSR-303 校验与统一异常返回、Session 登录认证与拦截器、Controller 层请求日志切面、声明式事务回滚与失效场景验证。
+待后续提交：任务 7（ApiFox 全面测试、war 部署验证与项目复盘）。
