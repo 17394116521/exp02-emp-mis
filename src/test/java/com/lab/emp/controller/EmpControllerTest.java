@@ -3,6 +3,7 @@ package com.lab.emp.controller;
 import com.lab.emp.config.MyBatisPlusConfig;
 import com.lab.emp.config.SpringConfig;
 import com.lab.emp.config.SpringMvcConfig;
+import com.lab.emp.interceptor.LoginInterceptor;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,6 +13,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
@@ -44,10 +46,18 @@ public class EmpControllerTest {
                 .build();
     }
 
+    /** 构造一个已登录会话，模拟 LoginInterceptor 放行条件 */
+    private MockHttpSession loginSession() {
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(LoginInterceptor.SESSION_EMP_ID, 1);
+        session.setAttribute(LoginInterceptor.SESSION_EMP_NAME, "顾清晏");
+        return session;
+    }
+
     /** 分页接口：返回 code=200 且包含 MP 分页字段 total/pages */
     @Test
     public void pageApiWorks() throws Exception {
-        mockMvc.perform(get("/emps").param("page", "1").param("size", "3"))
+        mockMvc.perform(get("/emps").session(loginSession()).param("page", "1").param("size", "3"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("\"code\":200")))
@@ -58,7 +68,7 @@ public class EmpControllerTest {
     /** 单查接口：返回员工姓名 */
     @Test
     public void getByIdApiWorks() throws Exception {
-        mockMvc.perform(get("/emps/1"))
+        mockMvc.perform(get("/emps/1").session(loginSession()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("\"code\":200")))
@@ -68,7 +78,7 @@ public class EmpControllerTest {
     /** 分页边界：page=0 应被拦截并返回 400 */
     @Test
     public void invalidPageParamRejected() throws Exception {
-        mockMvc.perform(get("/emps").param("page", "0"))
+        mockMvc.perform(get("/emps").session(loginSession()).param("page", "0"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("\"code\":400")));
@@ -77,7 +87,7 @@ public class EmpControllerTest {
     /** 多条件：不存在的姓名应返回 total=0，证明模糊条件已进入 SQL */
     @Test
     public void multiConditionFiltersWorks() throws Exception {
-        mockMvc.perform(get("/emps")
+        mockMvc.perform(get("/emps").session(loginSession())
                         .param("page", "1")
                         .param("size", "5")
                         .param("name", "该员工不存在XYZ")
@@ -92,7 +102,7 @@ public class EmpControllerTest {
     /** 薪资区间：只传下限也应正常返回分页结构 */
     @Test
     public void salaryRangeConditionWorks() throws Exception {
-        mockMvc.perform(get("/emps")
+        mockMvc.perform(get("/emps").session(loginSession())
                         .param("page", "1")
                         .param("size", "5")
                         .param("minSalary", "8000")
@@ -106,7 +116,7 @@ public class EmpControllerTest {
     /** 参数校验：姓名为空白应被拦截并返回 400 */
     @Test
     public void blankNameRejected() throws Exception {
-        mockMvc.perform(post("/emps").contentType("application/json")
+        mockMvc.perform(post("/emps").session(loginSession()).contentType("application/json")
                         .content("{\"empName\":\"   \",\"salary\":10000}"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -117,7 +127,7 @@ public class EmpControllerTest {
     /** 参数校验：负薪资应被拦截并返回 400 */
     @Test
     public void negativeSalaryRejected() throws Exception {
-        mockMvc.perform(post("/emps").contentType("application/json")
+        mockMvc.perform(post("/emps").session(loginSession()).contentType("application/json")
                         .content("{\"empName\":\"测试员工\",\"salary\":-1}"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -128,7 +138,7 @@ public class EmpControllerTest {
     /** 全局异常：非法 JSON 应返回统一的 400 结构，而不是容器错误页 */
     @Test
     public void malformedJsonRejected() throws Exception {
-        mockMvc.perform(post("/emps").contentType("application/json")
+        mockMvc.perform(post("/emps").session(loginSession()).contentType("application/json")
                         .content("{empName:}"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -139,9 +149,19 @@ public class EmpControllerTest {
     /** 批量删除空数组应返回 400，不应该走 SQL */
     @Test
     public void emptyBatchDeleteRejected() throws Exception {
-        mockMvc.perform(delete("/emps").contentType("application/json").content("[]"))
+        mockMvc.perform(delete("/emps").session(loginSession()).contentType("application/json").content("[]"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("\"code\":400")));
+    }
+
+    /** 登录拦截：不带会话访问员工列表应被拦截，返回 401 与统一结构 */
+    @Test
+    public void requestWithoutSessionBlocked() throws Exception {
+        mockMvc.perform(get("/emps"))
+                .andDo(print())
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string(containsString("\"code\":401")))
+                .andExpect(content().string(containsString("未登录或登录已过期")));
     }
 }
