@@ -13,6 +13,7 @@
 exp02-emp-mis
 ├── sql/init.sql              # 数据库初始化脚本（建库、建表、索引、初始数据）
 ├── src/main/java/com/lab/emp
+│   ├── aspect                # RequestTraceAspect（Controller 层请求日志切面）
 │   ├── common                # Result 统一返回封装、BusinessException、GlobalExceptionHandler
 │   ├── config                # SpringConfig、SpringMvcConfig、MyBatisPlusConfig、WebInitConfig
 │   ├── controller            # EmpController（RESTful 接口）、AuthController（登录/退出）
@@ -40,13 +41,15 @@ exp02-emp-mis
 6. commit6（11-23）：多条件分页查询——新增 EmpQueryDTO，Service 用 Lambda 条件构造器按需拼接姓名模糊、性别/部门精确与薪资区间条件，Controller 一键接入并补充接口测试
 7. commit7（11-23）：参数校验与全局异常——Emp 增加 JSR-303 约束（姓名、性别、薪资、状态等），新增/修改接口启用 @Valid，新增 GlobalExceptionHandler 统一处理校验失败、JSON 解析错误与兜底异常
 8. commit8（11-24）：登录拦截与认证接口——新增 LoginInterceptor 以 Session 中的员工编号校验受保护请求（返回真实 401 + 统一 JSON），新增 /auth/login、/auth/logout、/auth/me，登录账号取自 emp 表在岗员工，并补充认证与拦截测试
+9. commit9（11-24）：AOP 请求日志切面——@Around 拦截 Controller 层，为每次请求生成 traceId 写入 MDC，记录方法/URI/脱敏参数/耗时/响应状态，超过 500ms 记 WARN，异常记 ERROR 后原样抛出
 
 ## 🤖 AI 辅助使用记录
 AI 用于依赖清单生成、配置类初稿、接口模板与报错分析；人工校验重点：
 - MP 依赖误用 `mybatis-plus-boot-starter`（SSM 非 Spring Boot，改为 `mybatis-plus` + `mybatis-spring`）
 - 分页拦截器仅声明 Bean 不生效，必须在 SqlSessionFactory 中 `setPlugins`
 - 实体关联属性 `department` 需加 `@TableField(exist = false)`，否则拼入 SQL 报 Unknown column
+- 仅引入 `spring-aspects` 不会让 `@Aspect` 生效，根容器必须显式 `@EnableAspectJAutoProxy` 并扫描 aspect 包
 
 ## ✅ 当前进度
-已完成实验二任务 2–5，以及任务 6 的参数校验、全局异常与登录拦截部分：项目初始化与依赖管理、SSM 全注解整合、数据库设计与分层代码、RESTful 接口与多条件分页、JSR-303 校验与统一异常返回、Session 登录认证与拦截器。
-待后续提交：任务 6 剩余（AOP 请求日志、声明式事务验证）、任务 7（ApiFox 测试与项目复盘）。
+已完成实验二任务 2–5，以及任务 6 的参数校验、全局异常、登录拦截与 AOP 请求日志部分：项目初始化与依赖管理、SSM 全注解整合、数据库设计与分层代码、RESTful 接口与多条件分页、JSR-303 校验与统一异常返回、Session 登录认证与拦截器、Controller 层请求日志切面。
+待后续提交：任务 6 剩余（声明式事务验证）、任务 7（ApiFox 测试与项目复盘）。

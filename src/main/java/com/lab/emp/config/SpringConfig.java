@@ -10,6 +10,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -27,7 +28,8 @@ import javax.sql.DataSource;
  * 分页拦截器同样需要显式 setPlugins，仅声明成 Bean 不会自动生效。
  */
 @Configuration
-@ComponentScan({"com.lab.emp.service", "com.lab.emp.common"})
+@ComponentScan({"com.lab.emp.service", "com.lab.emp.common", "com.lab.emp.aspect"})
+@EnableAspectJAutoProxy
 @PropertySource("classpath:jdbc.properties")
 @MapperScan("com.lab.emp.mapper")
 @EnableTransactionManagement

@@ -155,6 +155,13 @@ public class EmpControllerTest {
                 .andExpect(content().string(containsString("\"code\":400")));
     }
 
+    /** AOP：请求日志切面应被容器注册，Controller 调用会被代理 */
+    @Test
+    public void traceAspectRegistered() {
+        org.junit.Assert.assertTrue("请求日志切面应注册为 Bean",
+                webApplicationContext.containsBean("requestTraceAspect"));
+    }
+
     /** 登录拦截：不带会话访问员工列表应被拦截，返回 401 与统一结构 */
     @Test
     public void requestWithoutSessionBlocked() throws Exception {
