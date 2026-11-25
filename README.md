@@ -12,6 +12,7 @@
 ## 📁 项目结构
 exp02-emp-mis
 ├── sql/init.sql              # 数据库初始化脚本（建库、建表、索引、初始数据）
+├── docs                      # 接口测试用例集、可导入 ApiFox 的 Postman 集合
 ├── src/main/java/com/lab/emp
 │   ├── aspect                # RequestTraceAspect（Controller 层请求日志切面）
 │   ├── common                # Result 统一返回封装、BusinessException、GlobalExceptionHandler
@@ -21,7 +22,7 @@ exp02-emp-mis
 │   ├── entity                # Emp、Department
 │   ├── interceptor           # LoginInterceptor（会话校验）
 │   ├── mapper                # EmpMapper、DeptMapper（继承 BaseMapper）
-│   └── service               # EmpService、DeptService 及实现
+│   └── service               # EmpService、DeptService、EmpTxService（事务验证）及实现
 ├── src/main/resources        # jdbc.properties、logback.xml
 ├── src/test/java             # 整合验证与接口测试（MockMvc）
 └── pom.xml
@@ -43,6 +44,13 @@ exp02-emp-mis
 8. commit8（11-24）：登录拦截与认证接口——新增 LoginInterceptor 以 Session 中的员工编号校验受保护请求（返回真实 401 + 统一 JSON），新增 /auth/login、/auth/logout、/auth/me，登录账号取自 emp 表在岗员工，并补充认证与拦截测试
 9. commit9（11-24）：AOP 请求日志切面——@Around 拦截 Controller 层，为每次请求生成 traceId 写入 MDC，记录方法/URI/脱敏参数/耗时/响应状态，超过 500ms 记 WARN，异常记 ERROR 后原样抛出
 10. commit10（11-24）：声明式事务验证——以部门批量迁移为载体，正常流程任一条员工缺失即抛业务异常并整体回滚；同时给出异常被吞、this 自调用、private 方法加注解三种失效场景，用测试对比观察数据是否残留
+11. commit11（11-25）：任务 7 测试准备——新增 26 条接口测试用例清单与可导入 ApiFox 的 Postman 集合，补充登录→新增→单查→修改→条件列表→删除的全链路接口测试与非法性别校验用例
+
+## 🧪 测试与接口验证
+- 用例清单：`docs/api-test-cases.md`（A 认证 6 条、E 员工 15 条、S 健壮性 4 条，标注自动化/待 ApiFox 执行）
+- 接口集合：`docs/emp-mis.postman_collection.json`，ApiFox 可导入，变量 `baseUrl` 默认 `http://localhost:8080/emp-mis`
+- 自动化：`mvn test` 共 27 个用例（含 MockMvc 接口链路、事务回滚、登录拦截、切面日志）
+- 链路数据以「链路验证-」「事务验证-」命名并在用例结束后删除，库内不留测试残留
 
 ## 🧪 事务验证记录（任务 6.5）
 | 场景 | 现象 | 原因 |
@@ -62,4 +70,5 @@ AI 用于依赖清单生成、配置类初稿、接口模板与报错分析；�
 
 ## ✅ 当前进度
 已完成实验二任务 2–6 全部内容：项目初始化与依赖管理、SSM 全注解整合、数据库设计与分层代码、RESTful 接口与多条件分页、JSR-303 校验与统一异常返回、Session 登录认证与拦截器、Controller 层请求日志切面、声明式事务回滚与失效场景验证。
-待后续提交：任务 7（ApiFox 全面测试、war 部署验证与项目复盘）。
+任务 7 已推进前半：测试用例集与接口集合文件、全链路接口自动化验证。
+待后续提交：任务 7 剩余（war 打包与 Tomcat 部署验证、项目复盘总结）。

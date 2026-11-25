@@ -1,0 +1,274 @@
+{
+  "info": {
+    "name": "EMP 员工管理 MIS - 实验二接口用例集",
+    "description": "实验二 SSM 整合项目接口集。先运行「认证」目录登录，工具保持 Cookie 后再运行「员工管理」。演示口令 emp@2026，账号为 emp 表在岗员工姓名。",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/emp-mis" }
+  ],
+  "item": [
+    {
+      "name": "认证 Auth",
+      "item": [
+        {
+          "name": "A-01 登录",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empName\": \"顾清晏\",\n  \"password\": \"emp@2026\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A-02 口令错误",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empName\": \"顾清晏\",\n  \"password\": \"wrong-pass\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A-06 当前登录信息",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "A-05 退出登录",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "员工管理 Emp",
+      "item": [
+        {
+          "name": "E-01 默认分页",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/emps",
+              "host": ["{{baseUrl}}"],
+              "path": ["emps"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "E-02 分页边界 page=0",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/emps?page=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["emps"],
+              "query": [{ "key": "page", "value": "0" }]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "E-03 多条件过滤",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/emps?page=1&size=5&name=顾&gender=男&dept=数智研发中心",
+              "host": ["{{baseUrl}}"],
+              "path": ["emps"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "size", "value": "5" },
+                { "key": "name", "value": "顾" },
+                { "key": "gender", "value": "男" },
+                { "key": "dept", "value": "数智研发中心" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "E-04 薪资区间",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/emps?minSalary=8000&maxSalary=20000",
+              "host": ["{{baseUrl}}"],
+              "path": ["emps"],
+              "query": [
+                { "key": "minSalary", "value": "8000" },
+                { "key": "maxSalary", "value": "20000" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "E-05 按编号查询",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/emps/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["emps", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "E-07 新增员工",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/emps",
+              "host": ["{{baseUrl}}"],
+              "path": ["emps"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empName\": \"幂等验证员工\",\n  \"gender\": \"女\",\n  \"dept\": \"增长运营中心\",\n  \"post\": \"活动运营实习生\",\n  \"salary\": 7600,\n  \"status\": 1,\n  \"deptId\": 2\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "E-12 修改员工",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/emps",
+              "host": ["{{baseUrl}}"],
+              "path": ["emps"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empId\": 1,\n  \"empName\": \"顾清晏\",\n  \"salary\": 13500\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "E-13 单个删除",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/emps/999999",
+              "host": ["{{baseUrl}}"],
+              "path": ["emps", "999999"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "E-15 批量删除",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/emps",
+              "host": ["{{baseUrl}}"],
+              "path": ["emps"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "[999998, 999999]"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "E-08 新增空姓名",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/emps",
+              "host": ["{{baseUrl}}"],
+              "path": ["emps"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empName\": \"   \",\n  \"salary\": 10000\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "E-09 新增负薪资",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/emps",
+              "host": ["{{baseUrl}}"],
+              "path": ["emps"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empName\": \"校验员工\",\n  \"salary\": -1\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "E-10 新增非法性别",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/emps",
+              "host": ["{{baseUrl}}"],
+              "path": ["emps"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"empName\": \"校验性别\",\n  \"gender\": \"未知\",\n  \"salary\": 9000\n}"
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

@@ -135,6 +135,17 @@ public class EmpControllerTest {
                 .andExpect(content().string(containsString("薪资不能为负数")));
     }
 
+    /** 参数校验：性别不在允许值内应被拦截 */
+    @Test
+    public void illegalGenderRejected() throws Exception {
+        mockMvc.perform(post("/emps").session(loginSession()).contentType("application/json")
+                        .content("{\"empName\":\"校验性别\",\"gender\":\"未知\",\"salary\":9000}"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("\"code\":400")))
+                .andExpect(content().string(containsString("性别只能填写男或女")));
+    }
+
     /** 全局异常：非法 JSON 应返回统一的 400 结构，而不是容器错误页 */
     @Test
     public void malformedJsonRejected() throws Exception {
