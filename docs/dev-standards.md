@@ -43,3 +43,16 @@
 - 本轮修正集中在“参数入口”，不改动业务语义，回归用例 31 个全部通过。
 - 仍待改进：演示口令常量化（R-10）、`PUT` 语义更接近 `PATCH`（严格 REST 应拆分全量与局部更新）、war 部署与 ApiFox 全量执行属验收阶段工作。
 - 后续提交延续“一次一件事”的粒度，提交信息继续采用 `commitN: 内容 + 验证` 格式，便于按时间线回溯。
+
+## 四、对照实验：两处经典错误的复现与修正
+
+为在报告中说明“错误长什么样、为什么错”，临时构造过两处故障并截图，随后全部回退。记录如下，截图仅作对照材料，不代表项目实际提交过缺陷代码。
+
+| 对照项 | 构造方式 | 失败现象 | 根因 | 修正 |
+|---|---|---|---|---|
+| 事务自调用失效 | `migrateDept` 去掉注解，改为 `this.migrateDeptWithAnnotation(...)` 调用同类带注解方法 | `EmpTxServiceTest#rollbackWhenAnyEmpMissing` 失败：期望部门保持“原部门-验证”，实际已是“迁移部门-验证”，控制台可见先 UPDATE 后抛异常 | 自调用不经过 Spring 代理，`@Transactional` 未被织入，异常无法触发回滚 | 事务注解回到 `migrateDept` 公有入口，直接执行迁移逻辑 |
+| 参数类型错误落到 500 | 注释掉 `GlobalExceptionHandler` 中 `MethodArgumentTypeMismatchException` 的处理分支 | `EmpControllerTest#nonNumericPageRejected` 失败：期望 `code=400`，实得 500，堆栈为 `NumberFormatException: For input string: "abc"` | 类型转换异常被兜底分支捕获，调用方参数错误被当成服务端故障 | 恢复该分支，单独返回 400 并指出参数名 `page` |
+| IDE 将测试报文标红 | `malformedJsonRejected` 直接写字符串字面量 `{empName:}` | 编辑器按 JSON 语法检查报“JSON 标准不允许使用此类令牌”，用例本身却需要这段非法报文 | 该字面量故意非法，属于测试数据，不是代码缺陷 | 改为 `StringBuilder` 运行时拼接，既保留非法报文语义，又消除误标红 |
+
+对照实验的临时改动未进入版本库；回退后执行 `mvn clean test`，31 个用例全部通过（Failures 0、Errors 0）。
+

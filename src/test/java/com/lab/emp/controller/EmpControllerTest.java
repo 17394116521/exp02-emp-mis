@@ -147,11 +147,21 @@ public class EmpControllerTest {
                 .andExpect(content().string(containsString("性别只能填写男或女")));
     }
 
-    /** 全局异常：非法 JSON 应返回统一的 400 结构，而不是容器错误页 */
+    /**
+     * 全局异常：非法 JSON 应返回统一的 400 结构，而不是容器错误页。
+     * 非法报文在运行时拼接，避免 IDE 对字符串字面量做 JSON 语法检查而误标红，
+     * 同时保证用例本身仍然发送“键名缺引号且没有值”的非法报文。
+     */
     @Test
     public void malformedJsonRejected() throws Exception {
+        String malformedJson = new StringBuilder(8)
+                .append('{')
+                .append("empName")   // 键名未加双引号
+                .append(':')          // 冒号后直接结束，没有值
+                .append('}')
+                .toString();
         mockMvc.perform(post("/emps").session(loginSession()).contentType("application/json")
-                        .content("{empName:}"))
+                        .content(malformedJson))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("\"code\":400")))
