@@ -21,6 +21,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -164,6 +165,49 @@ public class EmpControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("\"code\":400")));
+    }
+
+    /** 复查补充：修改接口不带 empId 时应返回 400，避免 updateById 静默失败被当成成功 */
+    @Test
+    public void updateWithoutIdRejected() throws Exception {
+        mockMvc.perform(put("/emps").session(loginSession()).contentType("application/json")
+                        .content("{\"empName\":\"无主键更新\",\"salary\":9000}"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("\"code\":400")))
+                .andExpect(content().string(containsString("必须提供合法的 empId")));
+    }
+
+    /** 复查补充：薪资下限大于上限属于无效区间，应直接拦截，不再发出必然空结果的 SQL */
+    @Test
+    public void reversedSalaryRangeRejected() throws Exception {
+        mockMvc.perform(get("/emps").session(loginSession())
+                        .param("minSalary", "20000")
+                        .param("maxSalary", "8000"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("\"code\":400")))
+                .andExpect(content().string(containsString("薪资区间不合法")));
+    }
+
+    /** 复查补充：page 传非数字应归为参数错误，而不是落到兜底分支报 500 */
+    @Test
+    public void nonNumericPageRejected() throws Exception {
+        mockMvc.perform(get("/emps").session(loginSession()).param("page", "abc"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("\"code\":400")))
+                .andExpect(content().string(containsString("请求参数[page]")));
+    }
+
+    /** 复查补充：主键为 0 或负数应返回 400，不查询数据库 */
+    @Test
+    public void illegalIdRejected() throws Exception {
+        mockMvc.perform(get("/emps/0").session(loginSession()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("\"code\":400")))
+                .andExpect(content().string(containsString("员工编号必须为正整数")));
     }
 
     /** AOP：请求日志切面应被容器注册，Controller 调用会被代理 */

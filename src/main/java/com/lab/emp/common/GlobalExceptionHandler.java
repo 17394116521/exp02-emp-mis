@@ -5,12 +5,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
  * 全局异常处理：把不同来源的异常统一转换成 code/message/data 结构，
  * 前端只需按 code 判断，不必解析 HTML 错误页或堆栈信息。
+ * <p>
+ * 复查补充：查询参数类型不匹配（如 page=abc）、必填参数缺失，
+ * 原先会落到兜底分支返回 500，属于“调用方写错却报服务端故障”，
+ * 现单独归为 400，并指出具体参数名，便于接口调试时快速定位。
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -31,6 +37,17 @@ public class GlobalExceptionHandler {
     public Result<Void> handleUnreadable(HttpMessageNotReadableException e) {
         log.warn("请求体解析失败：{}", e.getMessage());
         return Result.fail(400, "请求体格式错误，请检查 JSON 结构与字段类型");
+    }
+
+    /** 查询参数类型不匹配或必填参数缺失：定位到具体参数名，返回 400 */
+    @ExceptionHandler({MethodArgumentTypeMismatchException.class,
+            MissingServletRequestParameterException.class})
+    public Result<Void> handleBadParameter(Exception e) {
+        String param = e instanceof MethodArgumentTypeMismatchException
+                ? ((MethodArgumentTypeMismatchException) e).getName()
+                : ((MissingServletRequestParameterException) e).getParameterName();
+        log.warn("请求参数不合法：{} -> {}", param, e.getMessage());
+        return Result.fail(400, "请求参数[" + param + "]格式不正确或缺失");
     }
 
     /** 业务层主动抛出的可预期错误 */

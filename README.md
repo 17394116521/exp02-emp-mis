@@ -12,7 +12,7 @@
 ## 📁 项目结构
 exp02-emp-mis
 ├── sql/init.sql              # 数据库初始化脚本（建库、建表、索引、初始数据）
-├── docs                      # 接口测试用例集、可导入 ApiFox 的 Postman 集合
+├── docs                      # 接口测试用例集、ApiFox 集合、架构说明、开发规范清单
 ├── src/main/java/com/lab/emp
 │   ├── aspect                # RequestTraceAspect（Controller 层请求日志切面）
 │   ├── common                # Result 统一返回封装、BusinessException、GlobalExceptionHandler
@@ -45,12 +45,24 @@ exp02-emp-mis
 9. commit9（11-24）：AOP 请求日志切面——@Around 拦截 Controller 层，为每次请求生成 traceId 写入 MDC，记录方法/URI/脱敏参数/耗时/响应状态，超过 500ms 记 WARN，异常记 ERROR 后原样抛出
 10. commit10（11-24）：声明式事务验证——以部门批量迁移为载体，正常流程任一条员工缺失即抛业务异常并整体回滚；同时给出异常被吞、this 自调用、private 方法加注解三种失效场景，用测试对比观察数据是否残留
 11. commit11（11-25）：任务 7 测试准备——新增 26 条接口测试用例清单与可导入 ApiFox 的 Postman 集合，补充登录→新增→单查→修改→条件列表→删除的全链路接口测试与非法性别校验用例
+12. commit12（11-25）：前期实现复查与交付文档补齐——补 `PUT /emps` 主键校验、分页/薪资区间与单查单删编号合法性判断，新增查询参数类型错误与缺参的 400 处理，统一构造器注入与 Result 错误码注释，新增 `docs/architecture.md`（架构图+接口清单）、`docs/dev-standards.md`（14 条企业开发规范与复查结论），用例增至 31 个
 
 ## 🧪 测试与接口验证
-- 用例清单：`docs/api-test-cases.md`（A 认证 6 条、E 员工 15 条、S 健壮性 4 条，标注自动化/待 ApiFox 执行）
+- 用例清单：`docs/api-test-cases.md`（A 认证 6 条、E 员工 19 条、S 健壮性 4 条，共 29 条，标注自动化/待 ApiFox 执行）
 - 接口集合：`docs/emp-mis.postman_collection.json`，ApiFox 可导入，变量 `baseUrl` 默认 `http://localhost:8080/emp-mis`
-- 自动化：`mvn test` 共 27 个用例（含 MockMvc 接口链路、事务回滚、登录拦截、切面日志）
+- 架构与接口：`docs/architecture.md`（分层架构图、请求链路、接口清单、数据模型、设计取舍）
+- 规范清单：`docs/dev-standards.md`（14 条企业开发规范、本轮复查发现与结论）
+- 自动化：`mvn test` 共 31 个用例（含 MockMvc 接口链路、事务回滚、登录拦截、切面日志、参数入口校验）
 - 链路数据以「链路验证-」「事务验证-」命名并在用例结束后删除，库内不留测试残留
+
+## 🔍 复查优化记录（commit12）
+| 发现 | 风险 | 修正 |
+|---|---|---|
+| `PUT /emps` 不校验主键，`updateById` 失败仍返回成功 | 调用方误判更新生效 | 缺失或非法 `empId` 返回 400 |
+| `?page=abc` 落到兜底分支返回 500 | 参数错误被误报为服务端故障 | 新增类型转换/缺参异常的 400 分支，提示具体参数名 |
+| `minSalary > maxSalary` 仍查库 | 无效 SQL 往返，结果为空且无提示 | 控制层直接拦截并返回 400 |
+| `GET/DELETE /emps/0` 未校验编号 | 无意义 SQL | 编号必须为正整数 |
+| Controller 注入风格不一致 | 不利于替换依赖与测试 | 统一构造器注入 |
 
 ## 🧪 事务验证记录（任务 6.5）
 | 场景 | 现象 | 原因 |
@@ -70,5 +82,5 @@ AI 用于依赖清单生成、配置类初稿、接口模板与报错分析；�
 
 ## ✅ 当前进度
 已完成实验二任务 2–6 全部内容：项目初始化与依赖管理、SSM 全注解整合、数据库设计与分层代码、RESTful 接口与多条件分页、JSR-303 校验与统一异常返回、Session 登录认证与拦截器、Controller 层请求日志切面、声明式事务回滚与失效场景验证。
-任务 7 已推进前半：测试用例集与接口集合文件、全链路接口自动化验证。
-待后续提交：任务 7 剩余（war 打包与 Tomcat 部署验证、项目复盘总结）。
+任务 7 已完成：测试用例集与 ApiFox 集合、全链路接口自动化验证、前期实现复查与参数入口加固、架构说明与接口清单、企业开发规范清单与复盘记录。
+待后续提交：war 打包与 Tomcat 部署后的 ApiFox 全量执行记录、Git 收尾（发布 tag v1.0.0）。

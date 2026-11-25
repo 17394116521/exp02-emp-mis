@@ -36,6 +36,12 @@
 | E-13 | 单删 | DELETE /emps/{id} | 临时员工编号 | code=200，再查 data=null | 自动化通过（EmpLifecycleApiTest） |
 | E-14 | 批量删除空数组 | DELETE /emps | `[]` | code=400，待删除的员工编号不能为空 | 自动化通过 |
 | E-15 | 批量删除 | DELETE /emps | `[id1,id2]` | code=200，记录被移除 | ApiFox 待执行（涉及多写，手工验证后清理） |
+| E-16 | 修改缺主键（复查补充） | PUT /emps | 仅姓名+薪资，无 empId | code=400，必须提供合法的 empId | 自动化通过 |
+| E-17 | 薪资区间颠倒（复查补充） | GET /emps | minSalary=20000,maxSalary=8000 | code=400，薪资区间不合法 | 自动化通过 |
+| E-18 | 分页参数非数字（复查补充） | GET /emps | page=abc | code=400，请求参数[page]格式不正确 | 自动化通过 |
+| E-19 | 主键非法（复查补充） | GET /emps/0 | id=0 | code=400，员工编号必须为正整数 | 自动化通过 |
+
+用例总数 29 条（A 6、E 19、S 4），其中 25 条已由 JUnit + MockMvc 自动化覆盖，4 条需部署后在 ApiFox 执行。
 
 ## 三、健壮性与工程化（S）
 
